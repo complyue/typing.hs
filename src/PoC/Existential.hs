@@ -51,11 +51,7 @@ managedArrayAsSeries' (SomeManagedArray ma) = do
   return $ toDyn $ Series len rs
 
 arrayAsSeries :: SomeArray -> Dynamic
-arrayAsSeries (SomeArray cap fp) =
-  colAsSeries $ SomeColumn $ VS.unsafeFromForeignPtr0 fp cap
-
-arrayAsSeries' :: SomeArray -> Dynamic
-arrayAsSeries' (SomeArray cap fp) = do
+arrayAsSeries (SomeArray cap fp) = do
   let vec = VS.unsafeFromForeignPtr0 fp cap
       len = return $ VS.length vec
       rs i = return $ vec VS.! i
@@ -71,3 +67,7 @@ colAsSeries (SomeColumn colVec) = toDyn $ Series len rs
   where
     len = return $ VS.length colVec
     rs i = return $ colVec VS.! i
+
+arrayAsSeries' :: SomeArray -> Dynamic
+arrayAsSeries' (SomeArray cap fp) =
+  colAsSeries $ SomeColumn $ VS.unsafeFromForeignPtr0 fp cap
