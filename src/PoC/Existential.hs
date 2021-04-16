@@ -29,6 +29,7 @@ data SomeManagedArray
 
 -- * Things not working
 
+{-
 managedArrayAsSeries :: SomeManagedArray -> IO Dynamic
 managedArrayAsSeries (SomeManagedArray ma) = do
   vec <- do
@@ -38,8 +39,23 @@ managedArrayAsSeries (SomeManagedArray ma) = do
   let len = return $ VS.length vec
       rs i = return $ vec VS.! i
   return $ toDyn $ Series len rs
+-}
 
 -- * Things working
+
+data SomeSeries = forall a. (Typeable a) => SomeSeries (Series a)
+
+managedArrayAsSeries :: SomeManagedArray -> IO Dynamic
+managedArrayAsSeries (SomeManagedArray ma) = do
+  SomeSeries s <- do
+    SomeArray cap fp <- arrayAtTheMoment ma
+    let vec = VS.unsafeFromForeignPtr0 fp cap
+
+    let len = return $ VS.length vec
+        rs i = return $ vec VS.! i
+    return $ SomeSeries $ Series len rs
+
+  return $ toDyn s
 
 managedArrayAsSeries' :: SomeManagedArray -> IO Dynamic
 managedArrayAsSeries' (SomeManagedArray ma) = do
