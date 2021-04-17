@@ -43,19 +43,20 @@ managedArrayAsSeries (SomeManagedArray ma) = do
 
 -- * Things working
 
-data SomeSeries = forall a. (Typeable a) => SomeSeries (Series a)
+data SomeVector
+  = forall a.
+    (Typeable a, Storable a) =>
+    SomeVector (VS.Vector a)
 
 managedArrayAsSeries :: SomeManagedArray -> IO Dynamic
 managedArrayAsSeries (SomeManagedArray ma) = do
-  SomeSeries s <- do
+  SomeVector vec <- do
     SomeArray cap fp <- arrayAtTheMoment ma
-    let vec = VS.unsafeFromForeignPtr0 fp cap
+    return $ SomeVector $ VS.unsafeFromForeignPtr0 fp cap
 
-    let len = return $ VS.length vec
-        rs i = return $ vec VS.! i
-    return $ SomeSeries $ Series len rs
-
-  return $ toDyn s
+  let len = return $ VS.length vec
+      rs i = return $ vec VS.! i
+  return $ toDyn $ Series len rs
 
 managedArrayAsSeries' :: SomeManagedArray -> IO Dynamic
 managedArrayAsSeries' (SomeManagedArray ma) = do
