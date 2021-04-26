@@ -1,11 +1,15 @@
 module PoC.DynPoly where
 
+-- %%
 import Control.Monad (void)
 import Data.Dynamic (Dynamic (..), fromDynamic, toDyn)
 import Data.IORef (modifyIORef', newIORef, readIORef, writeIORef)
+import Data.Proxy
 import HsTyping.Shim
 import Type.Reflection (eqTypeRep, typeRep, pattern App, type (:~~:) (HRefl))
 import Prelude
+
+-- %-
 
 dynHoldEvent :: Dynamic -> Dynamic
 dynHoldEvent (Dynamic trEvs monotypedEvs) =
@@ -50,3 +54,33 @@ testDynHold = do
       publishEvent evs 3
       v1 <- readTimeSeries ts
       putStrLn $ "Then got " <> show v1
+
+-- %%
+type Float64 = Double
+
+-- %%
+newtype Float64' = Float64' {float64' :: Double}
+
+-- %-
+
+testDynProxy :: IO ()
+testDynProxy = do
+  -- %%
+  let dt = Proxy :: Proxy Double
+      ddt = toDyn dt
+
+  putStrLn $ case fromDynamic ddt of
+    Just (Proxy :: Proxy Float64) -> "Compatible"
+    _ -> "Incompatible"
+  -- %-
+
+  -- %%
+  let dt = Proxy :: Proxy Double
+      ddt = toDyn dt
+
+  putStrLn $ case fromDynamic ddt of
+    Just (Proxy :: Proxy Float64') -> "Compatible"
+    _ -> "Incompatible"
+  -- %-
+
+  return ()

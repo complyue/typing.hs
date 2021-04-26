@@ -1,0 +1,10 @@
+{
+  "ghci.terminal.cmdl": [
+    "cabal repl typing:exes",
+    "stack ghci typing:exe:hst"
+  ],
+  "comments": [
+    "Note you'll need to run `stack build` manually before any `stack ghci`",
+    "session to be brought up, or it may fail, as up to stack v2.5.1"
+  ]
+}
