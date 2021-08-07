@@ -13,6 +13,7 @@ executable hst
     HsTyping.Shim
     PoC.DynPoly
     PoC.Existential
+    PoC.Floating
 
   build-depends:
     , base  >=4.12 && <5
