@@ -14,6 +14,7 @@ executable hst
     PoC.DynPoly
     PoC.Existential
     PoC.Floating
+    Ref.Surreal
 
   build-depends:
     , base  >=4.12 && <5
@@ -23,7 +24,6 @@ executable hst
   hs-source-dirs:     src
   default-language:   Haskell2010
   default-extensions:
-    NoImplicitPrelude
     BangPatterns
     ConstraintKinds
     DataKinds
