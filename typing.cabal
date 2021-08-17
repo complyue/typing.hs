@@ -42,5 +42,6 @@ executable hst
     StandaloneDeriving
     TupleSections
     TypeApplications
+    AllowAmbiguousTypes
     TypeOperators
     ViewPatterns
