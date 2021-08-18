@@ -11,6 +11,7 @@ executable hst
   main-is:            Main.hs
   other-modules:
     HsTyping.Shim
+    PoC.Animal
     PoC.DynPoly
     PoC.Existential
     PoC.Floating
