@@ -21,6 +21,9 @@ class Animal a where
   getSpecies :: a -> Species
   getAge :: a -> Float
 
+  -- | Heterogeneous Animal constructor
+  animalAsOf :: a -> SomeAnimal
+
 class (Animal a) => Mammal a where
   isFurry :: a -> Bool
   makesSound :: a -> Sound
@@ -42,6 +45,13 @@ instance Animal Cat where
   getName = cat_name
   getSpecies = const FelisCatus
   getAge = cat_age
+
+  animalAsOf =
+    SomeAnimal $
+      AnimalType
+        ($ typeRep @Cat)
+        (\na exit -> exit $ typeRep @Cat)
+        (\na _exit -> na)
 
 instance Mammal Cat where
   isFurry _ = True
@@ -66,22 +76,13 @@ data AnimalType a = AnimalType
       r
   }
 
-data SomeAnimal = forall a. SomeAnimal a (AnimalType a)
+data SomeAnimal = forall a. SomeAnimal (AnimalType a) a
 
 -- * demo usage
 
--- | Heterogeneous Cat constructor
-cat :: Cat -> SomeAnimal
-cat a =
-  SomeAnimal a $
-    AnimalType
-      ($ typeRep @Cat)
-      (\na exit -> exit $ typeRep @Cat)
-      (\na _exit -> na)
-
 -- | Polymorphic Animal examination
 vet :: SomeAnimal -> IO ()
-vet (SomeAnimal a t) = do
+vet (SomeAnimal t a) = do
   animal'type'holder t $ \(_ :: TypeRep a) -> do
     -- here GHC can witness a's 'Animal' instance, dynamically
     putStrLn $
