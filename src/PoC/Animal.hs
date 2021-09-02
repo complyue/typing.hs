@@ -48,10 +48,10 @@ instance Animal Cat where
 
   animalAsOf =
     SomeAnimal $
-      AnimalType
-        ($ typeRep @Cat)
-        (\na exit -> exit $ typeRep @Cat)
-        (\na _exit -> na)
+      AnimalType @Cat
+        ($ typeRep)
+        (\na app -> app typeRep)
+        (\na _app -> na)
 
 instance Mammal Cat where
   isFurry _ = True
