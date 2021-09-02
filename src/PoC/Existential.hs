@@ -13,7 +13,7 @@ data Series a = Series
   }
 
 data SomeArray = forall a.
-  (Typeable a, VS.Storable a) =>
+  (Typeable a, Storable a) =>
   SomeArray
   { arrayCap :: Int,
     arrayPtr :: ForeignPtr a
@@ -76,7 +76,7 @@ arrayAsSeries (SomeArray cap fp) = do
 
 data SomeColumn
   = forall a.
-    (Typeable a, VS.Storable a) =>
+    (Typeable a, Storable a) =>
     SomeColumn (VS.Vector a)
 
 colAsSeries :: SomeColumn -> Dynamic
