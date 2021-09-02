@@ -57,7 +57,6 @@ instance Animal Cat where
     SomeAnimal $
       AnimalType @Cat
         ($ typeRep)
-        ($ typeRep)
         {- HLINT ignore "Use const" -}
         {- 'const' really won't work here, with strange error:
             Could not deduce (Winged Cat) from the context
@@ -82,7 +81,6 @@ instance Animal Tortoise where
   animalAsOf =
     SomeAnimal $
       AnimalType @Tortoise
-        ($ typeRep)
         (\_ -> mzero)
         (\_ -> mzero)
 
@@ -90,12 +88,7 @@ instance Animal Tortoise where
 
 data AnimalType a = (Animal a, Typeable a) =>
   AnimalType
-  { with'animal'type ::
-      forall m r.
-      (MonadPlus m) =>
-      (TypeRep a -> m r) ->
-      m r,
-    with'mamal'type ::
+  { with'mamal'type ::
       forall m r.
       (MonadPlus m) =>
       (forall a'. (a' ~ a, Mammal a', Typeable a') => TypeRep a -> m r) ->
