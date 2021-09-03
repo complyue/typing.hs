@@ -86,8 +86,7 @@ instance Animal Tortoise where
 
 -- * comprehension types
 
-data AnimalType a = (Animal a, Typeable a) =>
-  AnimalType
+data AnimalType a = AnimalType
   { with'mamal'type ::
       forall m r.
       (MonadPlus m) =>
