@@ -12,6 +12,7 @@ executable hst
   other-modules:
     HsTyping.Shim
     PoC.Animal
+    PoC.ConcState
     PoC.DynPoly
     PoC.Existential
     PoC.Floating
