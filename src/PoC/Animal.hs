@@ -56,7 +56,7 @@ instance Animal Cat where
   animalAsOf =
     SomeAnimal $
       AnimalType @Cat
-        ($ typeRep)
+        id
         {- HLINT ignore "Use const" -}
         {- 'const' really won't work here, with strange error:
             Could not deduce (Winged Cat) from the context
@@ -90,17 +90,16 @@ data AnimalType a = AnimalType
   { with'mamal'type ::
       forall m r.
       (MonadPlus m) =>
-      (forall a'. (a' ~ a, Mammal a', Typeable a') => TypeRep a -> m r) ->
+      (forall a'. (a' ~ a, Mammal a') => m r) ->
       m r,
     with'winged'type ::
       forall m r.
       (MonadPlus m) =>
-      (forall a'. (a' ~ a, Winged a', Typeable a') => TypeRep a -> m r) ->
+      (forall a'. (a' ~ a, Winged a') => m r) ->
       m r
   }
 
-data SomeAnimal
-  = forall a. (Animal a, Typeable a) => SomeAnimal (AnimalType a) a
+data SomeAnimal = forall a. (Animal a) => SomeAnimal (AnimalType a) a
 
 -- * demo usage
 
@@ -114,7 +113,7 @@ vet (SomeAnimal t a) = do
     "It is a " <> show (getSpecies a) <> "."
 
   (<|> putStrLn "We know it's not a mammal.") $
-    with'mamal'type t $ \(_ :: TypeRep a) -> do
+    with'mamal'type t $ do
       -- here GHC can witness a's 'Mammal' instance, dynamically
       putStrLn $
         "It's a mammal that "
@@ -123,7 +122,7 @@ vet (SomeAnimal t a) = do
         "It says \"" <> show (makesSound a) <> "\"."
 
   (<|> putStrLn "We know it's not winged.") $
-    with'winged'type t $ \(_ :: TypeRep a) -> do
+    with'winged'type t $ do
       -- here GHC can witness a's 'Winged' instance, dynamically
       putStrLn $
         "It's winged "
