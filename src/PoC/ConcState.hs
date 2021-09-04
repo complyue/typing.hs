@@ -14,13 +14,29 @@ type ValueSink a = TMVar (ValueNode a)
 
 type Timestamp = Int
 
-seekTail :: ValueSink a -> STM (ValueSink a, Maybe (ValueNode a))
-seekTail sink = go sink Nothing
+seekTail ::
+  forall a.
+  (a -> Timestamp -> a -> Timestamp -> a) ->
+  ValueSink a ->
+  STM (ValueSink a, Maybe (ValueNode a))
+seekTail f sink = go sink Nothing
   where
-    go ref ancestor =
+    go ::
+      ValueSink a ->
+      Maybe (ValueNode a) ->
+      STM (ValueSink a, Maybe (ValueNode a))
+    go ref prevNode =
       tryReadTMVar ref >>= \case
-        Nothing -> return (ref, ancestor)
-        Just self@(ValueNode _ _ nxt) -> go nxt $ Just self
+        Nothing -> return (ref, prevNode)
+        Just self@(ValueNode spotVal spotTs nxt) ->
+          go nxt $
+            Just
+              self
+                { node'value = case prevNode of
+                    Nothing -> spotVal
+                    Just (ValueNode prevVal prevTs _prevNxt) ->
+                      f prevVal prevTs spotVal spotTs
+                }
 
 updateValue ::
   forall a m.
@@ -29,7 +45,7 @@ updateValue ::
   ValueSink a ->
   m ()
 updateValue f sink = do
-  (tailRef, tailNode) <- liftIO $ atomically $ seekTail sink
+  (tailRef, tailNode) <- liftIO $ atomically $ seekTail justLatest sink
   case tailNode of
     Nothing -> do
       (myVal, myTs) <- f Nothing
@@ -37,8 +53,8 @@ updateValue f sink = do
         atomically $ do
           nxt <- newEmptyTMVar
           void $ tryPutTMVar tailRef $ ValueNode myVal myTs nxt
-    Just (ValueNode seenVal seenTs seenNxt) -> do
-      (myVal, myTs) <- f $ Just (seenVal, seenTs)
+    Just (ValueNode spotVal spotTs spotNxt) -> do
+      (myVal, myTs) <- f $ Just (spotVal, spotTs)
       newNxt <- liftIO newEmptyTMVarIO
       let newTail = ValueNode myVal myTs newNxt
 
@@ -53,7 +69,10 @@ updateValue f sink = do
                   then return ()
                   else putAsNewTailOrDiscard other'sNxt
 
-      liftIO $ atomically $ putAsNewTailOrDiscard seenNxt
+      liftIO $ atomically $ putAsNewTailOrDiscard spotNxt
+  where
+    justLatest :: (a -> Timestamp -> a -> Timestamp -> a)
+    justLatest _prevVal _prevTs spotVal _spotTs = spotVal
 
 -- Each concurrent thread is supposed to have its local 'ValueSink' reference
 -- "cached" over time, but keep in mind that for any such thread who is slow
