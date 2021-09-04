@@ -43,7 +43,7 @@ updateValue ::
   MonadIO m =>
   (Maybe (a, Timestamp) -> m (a, Timestamp)) ->
   ValueSink a ->
-  m ()
+  m (ValueSink a)
 updateValue f sink = do
   (tailRef, tailNode) <- liftIO $ atomically $ seekTail justLatest sink
   case tailNode of
@@ -53,6 +53,7 @@ updateValue f sink = do
         atomically $ do
           nxt <- newEmptyTMVar
           void $ tryPutTMVar tailRef $ ValueNode myVal myTs nxt
+          return nxt
     Just (ValueNode spotVal spotTs spotNxt) -> do
       (myVal, myTs) <- f $ Just (spotVal, spotTs)
       newNxt <- liftIO newEmptyTMVarIO
@@ -70,6 +71,7 @@ updateValue f sink = do
                   else putAsNewTailOrDiscard other'sNxt
 
       liftIO $ atomically $ putAsNewTailOrDiscard spotNxt
+      return spotNxt
   where
     justLatest :: (a -> Timestamp -> a -> Timestamp -> a)
     justLatest _prevVal _prevTs spotVal _spotTs = spotVal
