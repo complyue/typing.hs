@@ -20,18 +20,18 @@ dynHoldEvent (Dynamic trEvs monotypedEvs) =
         Nothing -> error "not an EventSink" -- to be handled properly
     _ -> error "even not a poly-type" -- to be handled properly
   where
-    holdEvent :: forall a. EventSink a -> IO (TimeSeries a)
+    holdEvent :: forall a. EventSink a -> IO (TemporalValue a)
     holdEvent !evs = do
       !holder <- newIORef Nothing
       listenEvents evs $ writeIORef holder . Just
-      return $ TimeSeries $ readIORef holder
+      return $ TemporalValue $ readIORef holder
 
 data EventSink a = EventSink
   { listenEvents :: (a -> IO ()) -> IO (),
     publishEvent :: a -> IO ()
   }
 
-newtype TimeSeries a = TimeSeries {readTimeSeries :: IO (Maybe a)}
+newtype TemporalValue a = TemporalValue {readTemporalValue :: IO (Maybe a)}
 
 newEventSink :: forall a. IO (EventSink a)
 newEventSink = do
@@ -48,11 +48,11 @@ testDynHold = do
   !dynTs <- dynPerformIO (error "bug: dyn type mismatch?") dynHold
   case fromDynamic dynTs of
     Nothing -> error "bug: unexpected dyn result type"
-    Just (ts :: TimeSeries Int) -> do
-      v0 <- readTimeSeries ts
+    Just (ts :: TemporalValue Int) -> do
+      v0 <- readTemporalValue ts
       putStrLn $ "First got " <> show v0
       publishEvent evs 3
-      v1 <- readTimeSeries ts
+      v1 <- readTemporalValue ts
       putStrLn $ "Then got " <> show v1
 
 -- %%
